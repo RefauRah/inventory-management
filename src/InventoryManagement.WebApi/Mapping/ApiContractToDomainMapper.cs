@@ -3,6 +3,7 @@ using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.Extensions;
 using InventoryManagement.Shared.Abstractions.Encryption;
 using InventoryManagement.Shared.Abstractions.Files;
+using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
 using InventoryManagement.WebApi.Endpoints.FileRepository.Requests;
 using InventoryManagement.WebApi.Endpoints.RoleManagement.Requests;
 using InventoryManagement.WebApi.Endpoints.UserManagement.Requests;
@@ -71,5 +72,15 @@ public static class ApiContractToDomainMapper
             });
 
         return user;
+    }
+
+    public static BookCategory ToBookCategory(this CreateBookCategoryRequest request, string salt, ISalter salter)
+    {
+        var bookCategory = new BookCategory
+        {
+            Name = request.Name!,            
+        };        
+
+        return bookCategory;
     }
 }
