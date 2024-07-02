@@ -5,6 +5,7 @@ using InventoryManagement.Shared.Abstractions.Encryption;
 using InventoryManagement.Shared.Abstractions.Files;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
 using InventoryManagement.WebApi.Endpoints.FileRepository.Requests;
+using InventoryManagement.WebApi.Endpoints.Publisher.Requests;
 using InventoryManagement.WebApi.Endpoints.RoleManagement.Requests;
 using InventoryManagement.WebApi.Endpoints.UserManagement.Requests;
 
@@ -82,5 +83,18 @@ public static class ApiContractToDomainMapper
         };        
 
         return bookCategory;
+    }
+
+    public static Publisher ToPublisher(this CreatePublisherRequest request, string salt, ISalter salter)
+    {
+        var publisher = new Publisher
+        {
+            Name = request.Name!,
+            Phone = request.Phone!,
+            Email = request.Email!,
+            Address = request.Address,
+        };
+
+        return publisher;
     }
 }

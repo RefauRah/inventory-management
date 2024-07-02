@@ -1,13 +1,9 @@
 ﻿using InventoryManagement.Shared.Abstractions.Databases;
-using InventoryManagement.WebApi.Common;
 using InventoryManagement.WebApi.Contracts.Responses;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
-using InventoryManagement.WebApi.Endpoints.BookCategory.Scopes;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using InventoryManagement.Domain.Entities;
 
 namespace InventoryManagement.WebApi.Endpoints.BookCategory;
 
