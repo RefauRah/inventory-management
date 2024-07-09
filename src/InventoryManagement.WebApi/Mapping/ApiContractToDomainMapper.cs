@@ -3,6 +3,7 @@ using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.Extensions;
 using InventoryManagement.Shared.Abstractions.Encryption;
 using InventoryManagement.Shared.Abstractions.Files;
+using InventoryManagement.WebApi.Endpoints.Author.Requests;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
 using InventoryManagement.WebApi.Endpoints.FileRepository.Requests;
 using InventoryManagement.WebApi.Endpoints.Publisher.Requests;
@@ -96,5 +97,16 @@ public static class ApiContractToDomainMapper
         };
 
         return publisher;
+    }
+
+    public static Author ToAuthor(this CreateAuthorRequest request, string salt, ISalter salter)
+    {
+        var author = new Author
+        {
+            Name = request.Name!,
+            Biography = request.Biography!
+        };
+
+        return author;
     }
 }
