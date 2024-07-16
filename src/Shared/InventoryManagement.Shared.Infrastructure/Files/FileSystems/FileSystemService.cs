@@ -81,4 +81,38 @@ public class FileSystemService : IFileService
             ? null
             : new FileDownloadResponse(fileName, File.OpenRead(fullPath)));
     }
+
+    public async Task<bool> IsFileExistAsync(string fileName, CancellationToken cancellationToken)
+    {
+        //20230103_test.txt
+        var s = fileName.Split('_');
+        if (s.Length != 2)
+            throw new InvalidOperationException("Filename must contain _");
+
+        if (s[0].Length != 8)
+            throw new InvalidOperationException("Invalid format filename");
+
+        //2023
+        var year = s[0][..4];
+        //01
+        var month = s[0].Substring(4, 2);
+        //03
+        var day = s[0].Substring(6, 2);
+
+        var fullPath = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(_options.Path))
+            fullPath = _options.Path;
+
+        fullPath = Path.Combine(fullPath,
+            year,
+            month,
+            day,
+            fileName);
+
+        //return Task.FromResult(!File.Exists(fullPath)
+        //    ? null
+        //    : new FileDownloadResponse(fileName, File.OpenRead(fullPath)));
+        return fullPath.Length > 0;
+    }
 }

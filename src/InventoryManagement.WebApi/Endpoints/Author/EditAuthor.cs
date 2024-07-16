@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Core.Abstractions;
 using InventoryManagement.Shared.Abstractions.Databases;
+using InventoryManagement.Shared.Abstractions.Files;
 using InventoryManagement.WebApi.Endpoints.Author.Requests;
 using InventoryManagement.WebApi.Validators;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +14,17 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
     private readonly IAuthorService _AuthorService;
     private readonly IDbContext _dbContext;
     private readonly IStringLocalizer<EditAuthor> _localizer;
+    private readonly IFileService _fileService;
 
     public EditAuthor(IAuthorService AuthorService,
         IDbContext dbContext,
-        IStringLocalizer<EditAuthor> localizer)
+        IStringLocalizer<EditAuthor> localizer,
+        IFileService fileService)
     {
         _AuthorService = AuthorService;
         _dbContext = dbContext;
         _localizer = localizer;
+        _fileService = fileService;
     }
 
     [HttpPut("{Id}")]
@@ -62,10 +66,19 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
         
         if (request.Payload.Biography != Author.Biography)
             Author.Biography = request.Payload.Biography!;
-        
-        //if (request.Payload.Image != Author.Image)
-        //    Author.Image = request.Payload.Image!;
-       
+
+        var isfileExist = await _fileService.IsFileExistAsync(Author.Image, cancellationToken);    
+        if (isfileExist)
+        {
+            // delete image
+        }
+
+        var fileResponse = await _fileService.UploadAsync(
+            new FileRequest(request.Payload.Image.FileName, request.Payload.Image.OpenReadStream()),
+            cancellationToken);
+
+        Author.Image = fileResponse.NewFileName;
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return NoContent();
