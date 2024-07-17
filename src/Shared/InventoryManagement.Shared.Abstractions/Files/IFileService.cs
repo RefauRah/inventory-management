@@ -7,4 +7,6 @@ public interface IFileService
     Task<FileDownloadResponse?> DownloadAsync(string fileName, CancellationToken cancellationToken);
     
     Task<bool> IsFileExistAsync(string fileName, CancellationToken cancellationToken);
+    
+    public Task<bool> DeleteFileAsync(string fileName, CancellationToken cancellationToken);
 }

@@ -33,7 +33,7 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
     [SwaggerOperation(
         Summary = "Edit Author",
         Description = "",
-        OperationId = "Author.EditAuthor",
+        OperationId = "author.EditAuthor",
         Tags = new[] { "Author" })
     ]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -46,7 +46,7 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
         if (!validationResult.IsValid)
             return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
 
-        var Author = await _AuthorService.GetByExpressionAsync(
+        var author = await _AuthorService.GetByExpressionAsync(
             e => e.Id == request.Id,
             e => new InventoryManagement.Domain.Entities.Author
             {
@@ -56,28 +56,30 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
                 Image = e.Image,
             }, cancellationToken);
 
-        if (Author is null)
+        if (author is null)
             return BadRequest(Error.Create(_localizer["data-not-found"]));
 
-        _dbContext.AttachEntity(Author);
+        _dbContext.AttachEntity(author);
 
-        if (request.Payload.Name != Author.Name)
-            Author.Name = request.Payload.Name!;
+        if (request.Payload.Name != author.Name)
+            author.Name = request.Payload.Name!;
         
-        if (request.Payload.Biography != Author.Biography)
-            Author.Biography = request.Payload.Biography!;
+        if (request.Payload.Biography != author.Biography)
+            author.Biography = request.Payload.Biography!;
 
-        var isfileExist = await _fileService.IsFileExistAsync(Author.Image, cancellationToken);    
+        var isfileExist = await _fileService.IsFileExistAsync(author.Image, cancellationToken);    
         if (isfileExist)
         {
-            // delete image
+            var isSuccessDeletedFile = await _fileService.DeleteFileAsync(author.Image, cancellationToken);
+            if (!isSuccessDeletedFile)
+                return BadRequest(Error.Create(_localizer["error-delete-file"]));
         }
 
         var fileResponse = await _fileService.UploadAsync(
             new FileRequest(request.Payload.Image.FileName, request.Payload.Image.OpenReadStream()),
             cancellationToken);
 
-        Author.Image = fileResponse.NewFileName;
+        author.Image = fileResponse.NewFileName;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
