@@ -1,6 +1,7 @@
 ﻿using InventoryManagement.Core.Abstractions;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
+using InventoryManagement.WebApi.Endpoints.Inventory.Requests;
 using InventoryManagement.WebApi.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
@@ -44,10 +45,10 @@ public class EditBookCategory : BaseEndpointWithoutResponse<EditBookCategoryRequ
 
         var BookCategory = await _bookCategoryService.GetByExpressionAsync(
             e => e.Id == request.Id,
-            e => new InventoryManagement.Domain.Entities.BookCategory
+            e => new Domain.Entities.BookCategory
             {
                 Id = e.Id,
-                Name = e.Name                
+                Name = e.Name
             }, cancellationToken);
 
         if (BookCategory is null)
@@ -57,7 +58,7 @@ public class EditBookCategory : BaseEndpointWithoutResponse<EditBookCategoryRequ
 
         if (request.Payload.Name != BookCategory.Name)
             BookCategory.Name = request.Payload.Name!;
-       
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return NoContent();

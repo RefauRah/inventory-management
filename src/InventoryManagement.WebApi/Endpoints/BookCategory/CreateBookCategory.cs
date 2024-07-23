@@ -1,12 +1,9 @@
 ﻿using InventoryManagement.Core.Abstractions;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.Shared.Abstractions.Encryption;
-using InventoryManagement.WebApi.Common;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
-using InventoryManagement.WebApi.Endpoints.BookCategory.Scopes;
 using InventoryManagement.WebApi.Mapping;
 using InventoryManagement.WebApi.Validators;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Swashbuckle.AspNetCore.Annotations;

@@ -12,5 +12,5 @@ public class EditBookCategoryRequestPayloadValidator : AbstractValidator<EditBoo
         When(e => !string.IsNullOrWhiteSpace(e.Name),
             () => { RuleFor(e => e.Name).SetValidator(new AsciiOnlyValidator()!).MaximumLength(100); });
 
-        }
+    }
 }

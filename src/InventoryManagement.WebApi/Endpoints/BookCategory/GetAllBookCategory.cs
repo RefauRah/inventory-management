@@ -29,7 +29,7 @@ public class GetAllBookCategory : BaseEndpoint<GetAllBookCategoryRequest, List<B
     public override async Task<ActionResult<List<BookCategoryResponse>>> HandleAsync([FromQuery] GetAllBookCategoryRequest request,
         CancellationToken cancellationToken = new())
     {
-        var queryable = _dbContext.Set<InventoryManagement.Domain.Entities.BookCategory>().AsQueryable();
+        var queryable = _dbContext.Set<Domain.Entities.BookCategory>().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Search) && request.Search.Length > 2)
             queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{request.Search}%"));

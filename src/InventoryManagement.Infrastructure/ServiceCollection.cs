@@ -32,6 +32,7 @@ public static class ServiceCollection
         services.AddScoped<IBookCategoryService, BookCategoryService>();
         services.AddScoped<IPublisherService, PublisherService>();
         services.AddScoped<IAuthorService, AuthorService>();
+        services.AddScoped<IInventoryService, InventoryService>();
         services.AddSingleton<ISalter, Salter>();
 
         //use one of these

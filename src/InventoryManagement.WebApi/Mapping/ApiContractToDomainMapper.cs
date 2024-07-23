@@ -4,11 +4,11 @@ using InventoryManagement.Domain.Extensions;
 using InventoryManagement.Shared.Abstractions.Encryption;
 using InventoryManagement.Shared.Abstractions.Files;
 using InventoryManagement.WebApi.Endpoints.Author.Requests;
-using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
 using InventoryManagement.WebApi.Endpoints.FileRepository.Requests;
 using InventoryManagement.WebApi.Endpoints.Publisher.Requests;
 using InventoryManagement.WebApi.Endpoints.RoleManagement.Requests;
 using InventoryManagement.WebApi.Endpoints.UserManagement.Requests;
+using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
 
 namespace InventoryManagement.WebApi.Mapping;
 
