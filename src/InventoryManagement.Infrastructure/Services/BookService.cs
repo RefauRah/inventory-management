@@ -7,27 +7,27 @@ using System.Linq.Expressions;
 
 namespace InventoryManagement.Infrastructure.Services;
 
-public class InventoryService : IInventoryService
+public class BookService : IBookService
 {
     private readonly IDbContext _dbContext;
     private readonly ISalter _salter;
 
-    public InventoryService(IDbContext dbContext, ISalter salter)
+    public BookService(IDbContext dbContext, ISalter salter)
     {
         _dbContext = dbContext;
         _salter = salter;
     }
 
-    public IQueryable<Inventory> GetBaseQuery()
-        => _dbContext.Set<Inventory>()
+    public IQueryable<Book> GetBaseQuery()
+        => _dbContext.Set<Book>()
             .AsQueryable();
 
-    public Task<Inventory?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<Book?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => GetBaseQuery()
             .Where(e => e.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<Inventory?> CreateAsync(Inventory entity, CancellationToken cancellationToken = default)
+    public async Task<Book?> CreateAsync(Book entity, CancellationToken cancellationToken = default)
     {
         await _dbContext.InsertAsync(entity, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -36,37 +36,40 @@ public class InventoryService : IInventoryService
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Inventory = await GetByIdAsync(id, cancellationToken);
-        if (Inventory is null)
+        var Book = await GetByIdAsync(id, cancellationToken);
+        if (Book is null)
             throw new Exception("Data not found");
 
-        _dbContext.AttachEntity(Inventory);
+        _dbContext.AttachEntity(Book);
 
-        Inventory.SetToDeleted();
+        Book.SetToDeleted();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<Inventory?> GetByExpressionAsync(
-        Expression<Func<Inventory, bool>> predicate,
-        Expression<Func<Inventory, Inventory>> projection,
+    public Task<Book?> GetByExpressionAsync(
+        Expression<Func<Book, bool>> predicate,
+        Expression<Func<Book, Book>> projection,
         CancellationToken cancellationToken = default)
         => GetBaseQuery()
             .Where(predicate)
             .Select(projection)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<Inventory?> GetByBookIdAsync(Guid bookId, CancellationToken cancellationToken = default)
+    public Task<Book?> GetByTitleAsync(string title, CancellationToken cancellationToken = default)
     {
+        var s = title.ToUpper();
+
         return GetBaseQuery()
-            .Where(e => e.BookId == bookId)
+            .Where(e => e.Title == s)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<Inventory?> AddAsync(Inventory entity, CancellationToken cancellationToken = default)
+    public Task<bool> IsBookExistAsync(string title, CancellationToken cancellationToken = default)
     {
-        await _dbContext.InsertAsync(entity, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return entity;
+        title = title.ToUpper();
+
+        return GetBaseQuery().Where(e => e.Title == title)
+            .AnyAsync(cancellationToken);
     }
 }

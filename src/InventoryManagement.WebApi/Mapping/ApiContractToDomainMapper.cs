@@ -9,6 +9,7 @@ using InventoryManagement.WebApi.Endpoints.Publisher.Requests;
 using InventoryManagement.WebApi.Endpoints.RoleManagement.Requests;
 using InventoryManagement.WebApi.Endpoints.UserManagement.Requests;
 using InventoryManagement.WebApi.Endpoints.BookCategory.Requests;
+using InventoryManagement.WebApi.Endpoints.Book.Requests;
 
 namespace InventoryManagement.WebApi.Mapping;
 
@@ -108,5 +109,28 @@ public static class ApiContractToDomainMapper
         };
 
         return author;
+    }
+
+    public static Book ToBook(this CreateBookRequest request, string salt, ISalter salter)
+    {
+        var book = new Book
+        {            
+            AuthorId = request.AuthorId!.Value,
+            CategoryId = request.CategoryId!.Value,
+            PublisherId = request.PublisherId!.Value,
+            Title = request.Title!,
+            Year = request.Year!.Value,
+            Pages = request.Pages!.Value,
+            Description = request.Description!,
+            PublishedDate = request.PublishedDate!.Value,
+            Isbn = request.Isbn!,
+            Dimensions = request.Dimensions!,
+            Weight = request.Weight!.Value,
+            Price = request.Price!.Value,
+            Cover = request.Cover!,
+            Language = request.Language!            
+        };
+
+        return book;
     }
 }
