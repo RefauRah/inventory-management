@@ -14,7 +14,7 @@
         public string? Dimensions { get; set; }
         public int? Weight { get; set; }
         public int? Price { get; set; }
-        public string? Cover { get; set; }
+        public IFormFile Cover { get; set; } = null!;
         public string? Language { get; set; }
     }
 }

@@ -53,15 +53,15 @@ public class CreatePublisher : BaseEndpointWithoutResponse<CreatePublisherReques
         if (!validationResult.IsValid)
             return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
 
-        var PublisherExist = await _PublisherService.IsPublisherExistAsync(request.Name!, cancellationToken);
-        if (PublisherExist)
+        var publisherExist = await _PublisherService.IsPublisherExistAsync(request.Name!, cancellationToken);
+        if (publisherExist)
             return BadRequest(Error.Create(_localizer["name-exists"]));
 
-        var Publisher = request.ToPublisher(
+        var publisher = request.ToPublisher(
             _rng.Generate(128, false),
             _salter);
 
-        await _dbContext.InsertAsync(Publisher, cancellationToken);
+        await _dbContext.InsertAsync(publisher, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

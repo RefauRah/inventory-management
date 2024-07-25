@@ -1,7 +1,7 @@
 ﻿using InventoryManagement.Core.Abstractions;
 using InventoryManagement.Shared.Abstractions.Databases;
+using InventoryManagement.Shared.Abstractions.Files;
 using InventoryManagement.WebApi.Endpoints.Book.Requests;
-using InventoryManagement.WebApi.Endpoints.Inventory.Requests;
 using InventoryManagement.WebApi.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
@@ -14,14 +14,17 @@ public class EditBook : BaseEndpointWithoutResponse<EditBookRequest>
     private readonly IBookService _bookService;
     private readonly IDbContext _dbContext;
     private readonly IStringLocalizer<EditBook> _localizer;
+    private readonly IFileService _fileService;
 
     public EditBook(IBookService bookService,
         IDbContext dbContext,
-        IStringLocalizer<EditBook> localizer)
+        IStringLocalizer<EditBook> localizer,
+        IFileService fileService)
     {
         _bookService = bookService;
         _dbContext = dbContext;
         _localizer = localizer;
+        _fileService = fileService;
     }
 
     [HttpPut("{Id}")]
@@ -42,6 +45,11 @@ public class EditBook : BaseEndpointWithoutResponse<EditBookRequest>
         var validationResult = await validator.ValidateAsync(request.Payload, cancellationToken);
         if (!validationResult.IsValid)
             return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
+
+        var isbnValidator = new Common.IsbnValidator();
+        var isbnValidatorResult = isbnValidator.IsValidISBNCode(request.Payload.Isbn!);
+        if (!isbnValidatorResult)
+            return BadRequest(Error.Create(_localizer["invalid-isbn"]));
 
         var book = await _bookService.GetByExpressionAsync(
             e => e.Id == request.Id,
@@ -71,6 +79,20 @@ public class EditBook : BaseEndpointWithoutResponse<EditBookRequest>
 
         if (request.Payload.Title != book.Title)
             book.Title = request.Payload.Title!;
+
+        var isfileExist = await _fileService.IsFileExistAsync(book.Cover!, cancellationToken);
+        if (isfileExist)
+        {
+            var isSuccessDeletedFile = await _fileService.DeleteFileAsync(book.Cover!, cancellationToken);
+            if (!isSuccessDeletedFile)
+                return BadRequest(Error.Create(_localizer["error-delete-file"]));
+        }
+
+        var fileResponse = await _fileService.UploadAsync(
+            new FileRequest(request.Payload.Cover.FileName, request.Payload.Cover.OpenReadStream()),
+            cancellationToken);
+
+        book.Cover = fileResponse.NewFileName;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

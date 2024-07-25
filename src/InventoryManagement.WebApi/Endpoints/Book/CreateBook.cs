@@ -1,6 +1,8 @@
 ﻿using InventoryManagement.Core.Abstractions;
+using InventoryManagement.Domain.Entities;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.Shared.Abstractions.Encryption;
+using InventoryManagement.Shared.Abstractions.Files;
 using InventoryManagement.WebApi.Endpoints.Book.Requests;
 using InventoryManagement.WebApi.Mapping;
 using InventoryManagement.WebApi.Validators;
@@ -17,18 +19,21 @@ public class CreateBook : BaseEndpointWithoutResponse<CreateBookRequest>
     private readonly IRng _rng;
     private readonly ISalter _salter;
     private readonly IStringLocalizer<CreateBook> _localizer;
+    private readonly IFileService _fileService;
 
     public CreateBook(IDbContext dbContext,
         IBookService BookService,
         IRng rng,
         ISalter salter,
-        IStringLocalizer<CreateBook> localizer)
+        IStringLocalizer<CreateBook> localizer,
+        IFileService fileService)
     {
         _dbContext = dbContext;
         _bookService = BookService;
         _rng = rng;
         _salter = salter;
         _localizer = localizer;
+        _fileService = fileService;
     }
 
     [HttpPost]
@@ -45,23 +50,41 @@ public class CreateBook : BaseEndpointWithoutResponse<CreateBookRequest>
     public override async Task<ActionResult> HandleAsync(CreateBookRequest request,
         CancellationToken cancellationToken = new())
     {
-        var validator = new CreateBookRequestValidator();
-        var validationResult = await validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-            return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
+        try
+        {
+            var validator = new CreateBookRequestValidator();
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
 
-        var BookExist = await _bookService.IsBookExistAsync(request.Title!, cancellationToken);
-        if (BookExist)
-            return BadRequest(Error.Create(_localizer["name-exists"]));
+            var isbnValidator = new Common.IsbnValidator();
+            var isbnValidatorResult = isbnValidator.IsValidISBNCode(request.Isbn!);
+            if (!isbnValidatorResult)
+                return BadRequest(Error.Create(_localizer["invalid-isbn"]));
 
-        var Book = request.ToBook(
-            _rng.Generate(128, false),
+            var bookExist = await _bookService.IsBookExistAsync(request.Title!, cancellationToken);
+            if (bookExist)
+                return BadRequest(Error.Create(_localizer["name-exists"]));
+
+            var fileResponse = await _fileService.UploadAsync(
+                new FileRequest(request.Cover.FileName, request.Cover.OpenReadStream()),
+                cancellationToken);
+
+            var book = request.ToBook(
+                _rng.Generate(128, false),
             _salter);
 
-        await _dbContext.InsertAsync(Book, cancellationToken);
+            book.Cover = fileResponse.NewFileName;
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.InsertAsync(book, cancellationToken);
 
-        return NoContent();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            throw new(ex.InnerException!.Message);
+        }
     }
 }

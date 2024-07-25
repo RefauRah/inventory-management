@@ -127,7 +127,6 @@ public static class ApiContractToDomainMapper
             Dimensions = request.Dimensions!,
             Weight = request.Weight!.Value,
             Price = request.Price!.Value,
-            Cover = request.Cover!,
             Language = request.Language!            
         };
 

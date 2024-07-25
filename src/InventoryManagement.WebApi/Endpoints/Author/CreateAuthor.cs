@@ -57,21 +57,21 @@ public class CreateAuthor : BaseEndpointWithoutResponse<CreateAuthorRequest>
         if (!validationResult.IsValid)
             return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
 
-        var AuthorExist = await _AuthorService.IsAuthorExistAsync(request.Name!, cancellationToken);
-        if (AuthorExist)
+        var authorExist = await _AuthorService.IsAuthorExistAsync(request.Name!, cancellationToken);
+        if (authorExist)
             return BadRequest(Error.Create(_localizer["name-exists"]));
         
         var fileResponse = await _fileService.UploadAsync(
             new FileRequest(request.Image.FileName, request.Image.OpenReadStream()),
             cancellationToken);
 
-        var Author = request.ToAuthor(
+        var author = request.ToAuthor(
             _rng.Generate(128, false),
             _salter);
 
-        Author.Image = fileResponse.NewFileName;
+        author.Image = fileResponse.NewFileName;
 
-        await _dbContext.InsertAsync(Author, cancellationToken);
+        await _dbContext.InsertAsync(author, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

@@ -8,5 +8,6 @@
   "user-inactive": "User already inactive",
   "role-name-exists": "Role name {0} already exists",
   "to-large-text-size": "Text size must be lower than 1MB",
-  "error-delete-file": "Error delete file"
+  "error-delete-file": "Error delete file",
+  "invalid-isbn":  "Invalid ISBN"
 }

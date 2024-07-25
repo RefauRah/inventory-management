@@ -61,7 +61,7 @@ public class BookService : IBookService
         var s = title.ToUpper();
 
         return GetBaseQuery()
-            .Where(e => e.Title == s)
+            .Where(e => e.Title.ToUpper() == s)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -69,7 +69,7 @@ public class BookService : IBookService
     {
         title = title.ToUpper();
 
-        return GetBaseQuery().Where(e => e.Title == title)
+        return GetBaseQuery().Where(e => e.Title.ToUpper() == title)
             .AnyAsync(cancellationToken);
     }
 }

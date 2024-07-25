@@ -67,10 +67,10 @@ public class EditAuthor : BaseEndpointWithoutResponse<EditAuthorRequest>
         if (request.Payload.Biography != author.Biography)
             author.Biography = request.Payload.Biography!;
 
-        var isfileExist = await _fileService.IsFileExistAsync(author.Image, cancellationToken);    
+        var isfileExist = await _fileService.IsFileExistAsync(author.Image!, cancellationToken);    
         if (isfileExist)
         {
-            var isSuccessDeletedFile = await _fileService.DeleteFileAsync(author.Image, cancellationToken);
+            var isSuccessDeletedFile = await _fileService.DeleteFileAsync(author.Image!, cancellationToken);
             if (!isSuccessDeletedFile)
                 return BadRequest(Error.Create(_localizer["error-delete-file"]));
         }

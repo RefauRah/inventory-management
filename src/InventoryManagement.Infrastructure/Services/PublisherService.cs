@@ -61,7 +61,7 @@ public class PublisherService : IPublisherService
         var s = name.ToUpper();
 
         return GetBaseQuery()
-            .Where(e => e.Name == s)
+            .Where(e => e.Name.ToUpper() == s)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -69,7 +69,7 @@ public class PublisherService : IPublisherService
     {
         name = name.ToUpper();
 
-        return GetBaseQuery().Where(e => e.Name == name)
+        return GetBaseQuery().Where(e => e.Name.ToUpper() == name)
             .AnyAsync(cancellationToken);
     }
 }

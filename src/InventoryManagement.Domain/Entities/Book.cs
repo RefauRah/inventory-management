@@ -4,7 +4,7 @@ namespace InventoryManagement.Domain.Entities;
 
 public sealed class Book : BaseEntity, IEntity
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid AuthorId { get; set; }
     public Guid CategoryId { get; set; }
     public Guid PublisherId { get; set; }

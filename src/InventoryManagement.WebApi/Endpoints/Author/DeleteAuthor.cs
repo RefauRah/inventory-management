@@ -1,9 +1,6 @@
 ﻿using InventoryManagement.Core.Abstractions;
-using InventoryManagement.Domain.Entities;
-using InventoryManagement.Infrastructure.Services;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.Shared.Abstractions.Files;
-using InventoryManagement.WebApi.Contracts.Requests;
 using InventoryManagement.WebApi.Endpoints.Author.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
@@ -18,9 +15,13 @@ public class DeleteAuthor : BaseEndpointWithoutResponse<DeleteAuthorRequest>
     private readonly IStringLocalizer<DeleteAuthor> _localizer;
     private readonly IFileService _fileService;
 
-    public DeleteAuthor(IAuthorService authorService)
+    public DeleteAuthor(IAuthorService authorService, 
+        IFileService fileService,
+        IStringLocalizer<DeleteAuthor> localizer)
     {
         _authorService = authorService;
+        _fileService = fileService;
+        _localizer = localizer;
     }
 
     [HttpDelete("{Id}")]
@@ -49,7 +50,7 @@ public class DeleteAuthor : BaseEndpointWithoutResponse<DeleteAuthorRequest>
         if (author is null)
             return BadRequest(Error.Create(_localizer["data-not-found"]));
 
-        var isSuccessDeletedFile = await _fileService.DeleteFileAsync(author.Image, cancellationToken);
+        var isSuccessDeletedFile = await _fileService.DeleteFileAsync(author.Image!, cancellationToken);
         if (!isSuccessDeletedFile)
             return BadRequest(Error.Create(_localizer["error-delete-file"]));
 
