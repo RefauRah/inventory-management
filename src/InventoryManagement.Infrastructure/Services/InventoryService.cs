@@ -34,6 +34,12 @@ public class InventoryService : IInventoryService
         return entity;
     }
 
+    public async Task<Inventory?> UpdateAsync(Inventory entity, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return entity;
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var Inventory = await GetByIdAsync(id, cancellationToken);
@@ -61,12 +67,5 @@ public class InventoryService : IInventoryService
         return GetBaseQuery()
             .Where(e => e.BookId == bookId)
             .FirstOrDefaultAsync(cancellationToken);
-    }
-
-    public async Task<Inventory?> AddAsync(Inventory entity, CancellationToken cancellationToken = default)
-    {
-        await _dbContext.InsertAsync(entity, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return entity;
     }
 }

@@ -1,5 +1,5 @@
-﻿using InventoryManagement.Core.Abstractions;
-using InventoryManagement.Domain.Entities;
+﻿using FluentValidation;
+using InventoryManagement.Core.Abstractions;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.Shared.Abstractions.Encryption;
@@ -11,19 +11,19 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace InventoryManagement.WebApi.Endpoints.Inventory;
 
-public class AddInventory : BaseEndpointWithoutResponse<AddInventoryRequest>
+public class ReduceInventory : BaseEndpointWithoutResponse<ReduceInventoryRequest>
 {
     private readonly IDbContext _dbContext;
     private readonly IInventoryService _inventoryService;
     private readonly IRng _rng;
     private readonly ISalter _salter;
-    private readonly IStringLocalizer<AddInventory> _localizer;
+    private readonly IStringLocalizer<ReduceInventory> _localizer;
 
-    public AddInventory(IDbContext dbContext,
+    public ReduceInventory(IDbContext dbContext,
         IInventoryService InventoryService,
         IRng rng,
         ISalter salter,
-        IStringLocalizer<AddInventory> localizer)
+        IStringLocalizer<ReduceInventory> localizer)
     {
         _dbContext = dbContext;
         _inventoryService = InventoryService;
@@ -32,23 +32,23 @@ public class AddInventory : BaseEndpointWithoutResponse<AddInventoryRequest>
         _localizer = localizer;
     }
 
-    [HttpPost("add")]
+    [HttpPost("reduce")]
     //[Authorize]
     //[RequiredScope(typeof(InventoryScope))]
     [SwaggerOperation(
-        Summary = "Add Inventory",
+        Summary = "Reduce Inventory",
         Description = "",
-        OperationId = "Inventory.AddInventory",
+        OperationId = "Inventory.ReduceInventory",
         Tags = new[] { "Inventory" })
     ]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
-    public override async Task<ActionResult> HandleAsync(AddInventoryRequest request,
+    public override async Task<ActionResult> HandleAsync(ReduceInventoryRequest request,
         CancellationToken cancellationToken = new())
     {
         try
         {
-            var validator = new AddInventoryRequestValidator();
+            var validator = new ReduceInventoryRequestValidator();
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
                 return BadRequest(Error.Create(_localizer["invalid-parameter"], validationResult.Construct()));
@@ -57,31 +57,24 @@ public class AddInventory : BaseEndpointWithoutResponse<AddInventoryRequest>
                 return BadRequest(Error.Create(_localizer["invalid-parameter"]));
 
             var existingInventory = await _inventoryService.GetByBookIdAsync(request.BookId, cancellationToken);
-            if (existingInventory != null)
-            {
-                _dbContext.AttachEntity(existingInventory);
+            if (existingInventory == null)
+                return BadRequest(Error.Create(_localizer["data-not-found"]));
 
-                existingInventory.BookId = request.BookId;
-                existingInventory.Stock += request.Qty;
+            if (existingInventory.Stock < 0)
+                return BadRequest(Error.Create(_localizer["invalid-parameter"]));
 
-                await _inventoryService.UpdateAsync(existingInventory, cancellationToken);
-            }
-            else
-            {
-                var inventory = new Domain.Entities.Inventory
-                {
-                    BookId = request.BookId,
-                    Stock = request.Qty,
-                };
+            _dbContext.AttachEntity(existingInventory);
 
-                await _inventoryService.CreateAsync(inventory, cancellationToken);
-            }
+            existingInventory.BookId = request.BookId;
+            existingInventory.Stock -= request.Qty;
+
+            await _inventoryService.UpdateAsync(existingInventory, cancellationToken);
 
             return NoContent();
         }
         catch (Exception ex)
         {
             throw new(ex.InnerException!.Message);
-        }        
+        }
     }
 }
