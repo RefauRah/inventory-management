@@ -34,6 +34,7 @@ public static class ServiceCollection
         services.AddScoped<IAuthorService, AuthorService>();
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IBookService, BookService>();
+        services.AddScoped<ITransactionHistoryService, TransactionHistoryService>();
         services.AddSingleton<ISalter, Salter>();
 
         //use one of these

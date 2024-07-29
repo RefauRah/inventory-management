@@ -45,7 +45,7 @@ public class AddInventory : BaseEndpointWithoutResponse<AddInventoryRequest>
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     public override async Task<ActionResult> HandleAsync(AddInventoryRequest request,
         CancellationToken cancellationToken = new())
-    {
+    {      
         try
         {
             var validator = new AddInventoryRequestValidator();
@@ -64,24 +64,45 @@ public class AddInventory : BaseEndpointWithoutResponse<AddInventoryRequest>
                 existingInventory.BookId = request.BookId;
                 existingInventory.Stock += request.Qty;
 
-                await _inventoryService.UpdateAsync(existingInventory, cancellationToken);
+                var transactionHistory = new TransactionHistory
+                {
+                    InventoryId = existingInventory.Id,
+                    Qty = request.Qty,
+                    TransactionDate = DateTime.UtcNow,
+                    TransactionType = (int)TransactionType.In
+                };
+
+                await _dbContext.InsertAsync(transactionHistory, cancellationToken);
             }
             else
             {
-                var inventory = new Domain.Entities.Inventory
+                var newInventory = new Domain.Entities.Inventory
                 {
                     BookId = request.BookId,
                     Stock = request.Qty,
                 };
 
-                await _inventoryService.CreateAsync(inventory, cancellationToken);
+                await _dbContext.InsertAsync(newInventory, cancellationToken);
+
+                var transactionHistory = new TransactionHistory
+                {
+                    InventoryId = newInventory.Id,
+                    Qty = request.Qty,
+                    TransactionDate = DateTime.UtcNow,
+                    TransactionType = (int)TransactionType.In
+                };
+
+                await _dbContext.InsertAsync(transactionHistory, cancellationToken);
             }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             return NoContent();
         }
         catch (Exception ex)
         {
-            throw new(ex.InnerException!.Message);
-        }        
+            // Log the exception or handle it accordingly
+            throw new Exception(ex.Message, ex);
+        }
     }
 }

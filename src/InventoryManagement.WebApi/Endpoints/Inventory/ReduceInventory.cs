@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using InventoryManagement.Core.Abstractions;
+using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.Shared.Abstractions.Databases;
 using InventoryManagement.Shared.Abstractions.Encryption;
@@ -68,7 +69,17 @@ public class ReduceInventory : BaseEndpointWithoutResponse<ReduceInventoryReques
             existingInventory.BookId = request.BookId;
             existingInventory.Stock -= request.Qty;
 
-            await _inventoryService.UpdateAsync(existingInventory, cancellationToken);
+            var transactionHistory = new TransactionHistory
+            {
+                InventoryId = existingInventory.Id,
+                Qty = request.Qty,
+                TransactionDate = DateTime.UtcNow,
+                TransactionType = (int)TransactionType.Out,
+            };
+
+            await _dbContext.InsertAsync(transactionHistory, cancellationToken);
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             return NoContent();
         }
